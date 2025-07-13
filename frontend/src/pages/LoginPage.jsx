@@ -2,11 +2,21 @@ import React, { useState, useContext } from "react";
 import { useNavigate } from "react-router-dom";
 import axios from "axios";
 import { Eye, EyeOff, Mail, Lock, LogIn, GraduationCap } from "lucide-react";
+import { AuthContext } from "../context/AuthContext";
 
 // Replace this with your actual AuthContext
-const AuthContext = React.createContext({
-  login: (data) => console.log("Login called with:", data),
-});
+// const AuthContext = React.createContext({
+//   login: (userData, token) => {
+//     console.log("Saving user and token to localStorage:", userData, token);
+//     localStorage.setItem("user", JSON.stringify(userData));
+//     localStorage.setItem("token", token); // ✅ Store token
+//     setUser(userData);
+//   }
+// });
+// const [user, setUser] = useState(() => {
+//   const localData = localStorage.getItem("user");
+//   return localData ? JSON.parse(localData) : null;
+// });
 
 const LoginPage = () => {
   const { login } = useContext(AuthContext);
@@ -35,7 +45,7 @@ const LoginPage = () => {
         { headers: { "Content-Type": "application/json" } }
       );
 
-      login(res.data);
+      login(res.data.user, res.data.token);
       const role = res.data.user?.role;
 
       if (role === "admin") navigate("/admin");

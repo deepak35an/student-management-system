@@ -9,9 +9,9 @@ const AuthProvider = ({ children }) => {
     return localData ? JSON.parse(localData) : null;
   });
 
-  const login = (userData) => {
-    console.log("Saving user to context:", userData);
+  const login = (userData, token) => {
     localStorage.setItem("user", JSON.stringify(userData));
+    localStorage.setItem("token", token);
     setUser(userData);
   };
 

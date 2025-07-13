@@ -14,6 +14,8 @@ import {
 } from 'lucide-react';
 
 const StudentDashboard = () => {
+  console.log("✅ StudentDashboard component mounted");
+
   // Mock student data - in real app, this would come from your backend
   const [studentData, setStudentData] = useState({
     user: {
