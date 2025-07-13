@@ -13,66 +13,70 @@ import {
   DollarSign
 } from 'lucide-react';
 
-const StudentDashboard = () => {
-  console.log("✅ StudentDashboard component mounted");
+const StudentDashboard = ({ userEmail, userData, posts, attendanceData, onViewAssignments, onCheckResults, onViewAttendance }) => {
+  console.log("✅ StudentDashboard component mounted with email:", userEmail);
 
-  // Mock student data - in real app, this would come from your backend
-  const [studentData, setStudentData] = useState({
+  // Default props in case they're not provided
+  const defaultUserData = {
     user: {
-      name: "John Doe",
-      email: "john.doe@school.edu",
+      name: "Student Name",
+      email: userEmail || "student@school.edu",
       role: "student"
     },
-    rollNumber: "CS2024001",
-    className: "Computer Science - Year 3",
-    feesPaid: true
-  });
+    rollNumber: "Loading...",
+    className: "Loading...",
+    feesPaid: false
+  };
 
-  // Mock posts data
-  const [posts, setPosts] = useState([
+  const defaultPosts = [
     {
       _id: "1",
-      title: "Assignment 1: Data Structures",
-      type: "assignment",
-      content: "Complete the binary tree implementation assignment. Due date: March 15, 2024.",
-      className: "Computer Science - Year 3",
-      postedBy: { name: "Dr. Smith" },
-      createdAt: new Date("2024-03-01")
-    },
-    {
-      _id: "2",
-      title: "Mid-term Results Published",
-      type: "result",
-      content: "Mid-term examination results are now available. Check your grades in the results section.",
-      className: "Computer Science - Year 3",
-      postedBy: { name: "Prof. Johnson" },
-      createdAt: new Date("2024-03-05")
-    },
-    {
-      _id: "3",
-      title: "Holiday Notice",
+      title: "Welcome to Student Portal",
       type: "notice",
-      content: "University will be closed on March 20th for Spring Festival. Classes will resume on March 21st.",
-      className: "Computer Science - Year 3",
-      postedBy: { name: "Admin Office" },
-      createdAt: new Date("2024-03-10")
+      content: "Welcome! Your data is being loaded...",
+      className: "General",
+      postedBy: { name: "System" },
+      createdAt: new Date()
     }
-  ]);
+  ];
 
-  // Mock attendance data
-  const [attendanceData, setAttendanceData] = useState([
-    { date: "2024-03-01", status: "present" },
-    { date: "2024-03-02", status: "present" },
-    { date: "2024-03-03", status: "absent" },
-    { date: "2024-03-04", status: "present" },
-    { date: "2024-03-05", status: "present" },
-    { date: "2024-03-06", status: "present" },
-    { date: "2024-03-07", status: "absent" },
-  ]);
+  const defaultAttendance = [
+    { date: new Date().toISOString().split('T')[0], status: "present" }
+  ];
+
+  // Use provided props or fallback to defaults
+  const [studentData, setStudentData] = useState(userData || defaultUserData);
+  const [postsData, setPostsData] = useState(posts || defaultPosts);
+  const [attendanceRecords, setAttendanceRecords] = useState(attendanceData || defaultAttendance);
+
+  // Update state when props change
+  useEffect(() => {
+    if (userData) {
+      setStudentData({
+        ...userData,
+        user: {
+          ...userData.user,
+          email: userEmail || userData.user.email
+        }
+      });
+    }
+  }, [userData, userEmail]);
+
+  useEffect(() => {
+    if (posts) {
+      setPostsData(posts);
+    }
+  }, [posts]);
+
+  useEffect(() => {
+    if (attendanceData) {
+      setAttendanceRecords(attendanceData);
+    }
+  }, [attendanceData]);
 
   // Calculate attendance percentage
   const attendancePercentage = Math.round(
-    (attendanceData.filter(record => record.status === "present").length / attendanceData.length) * 100
+    (attendanceRecords.filter(record => record.status === "present").length / attendanceRecords.length) * 100
   );
 
   const getPostIcon = (type) => {
@@ -93,6 +97,24 @@ const StudentDashboard = () => {
     }
   };
 
+  const handleViewAssignments = () => {
+    if (onViewAssignments) {
+      onViewAssignments(userEmail);
+    }
+  };
+
+  const handleCheckResults = () => {
+    if (onCheckResults) {
+      onCheckResults(userEmail);
+    }
+  };
+
+  const handleViewAttendance = () => {
+    if (onViewAttendance) {
+      onViewAttendance(userEmail);
+    }
+  };
+
   return (
     <div className="min-h-screen bg-gray-50 p-6">
       <div className="max-w-7xl mx-auto">
@@ -100,6 +122,7 @@ const StudentDashboard = () => {
         <div className="mb-8">
           <h1 className="text-3xl font-bold text-gray-900 mb-2">Student Dashboard</h1>
           <p className="text-gray-600">Welcome back, {studentData.user.name}!</p>
+          <p className="text-sm text-gray-500">Account: {studentData.user.email}</p>
         </div>
 
         {/* Stats Cards */}
@@ -170,7 +193,7 @@ const StudentDashboard = () => {
               </div>
               <div className="p-6">
                 <div className="space-y-4">
-                  {posts.map((post) => (
+                  {postsData.map((post) => (
                     <div key={post._id} className={`p-4 rounded-lg border ${getPostColor(post.type)}`}>
                       <div className="flex items-start justify-between">
                         <div className="flex items-center mb-2">
@@ -178,7 +201,7 @@ const StudentDashboard = () => {
                           <span className="ml-2 text-sm font-medium capitalize">{post.type}</span>
                         </div>
                         <span className="text-xs text-gray-500">
-                          {post.createdAt.toLocaleDateString()}
+                          {new Date(post.createdAt).toLocaleDateString()}
                         </span>
                       </div>
                       <h3 className="font-semibold text-gray-900 mb-2">{post.title}</h3>
@@ -229,7 +252,7 @@ const StudentDashboard = () => {
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                  {attendanceData.slice(-5).map((record, index) => (
+                  {attendanceRecords.slice(-5).map((record, index) => (
                     <div key={index} className="flex items-center justify-between">
                       <span className="text-sm text-gray-600">
                         {new Date(record.date).toLocaleDateString()}
@@ -279,15 +302,24 @@ const StudentDashboard = () => {
               </div>
               <div className="p-6">
                 <div className="space-y-3">
-                  <button className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors">
+                  <button 
+                    onClick={handleViewAssignments}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                  >
                     <FileText className="w-4 h-4 mr-2" />
                     View All Assignments
                   </button>
-                  <button className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors">
+                  <button 
+                    onClick={handleCheckResults}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-green-600 text-white rounded-lg hover:bg-green-700 transition-colors"
+                  >
                     <Award className="w-4 h-4 mr-2" />
                     Check Results
                   </button>
-                  <button className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors">
+                  <button 
+                    onClick={handleViewAttendance}
+                    className="w-full flex items-center justify-center px-4 py-2 bg-purple-600 text-white rounded-lg hover:bg-purple-700 transition-colors"
+                  >
                     <Calendar className="w-4 h-4 mr-2" />
                     View Full Attendance
                   </button>
