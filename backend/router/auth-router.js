@@ -91,7 +91,7 @@ router.get("/posts", auth(["student"]), async (req, res) => {
 });
 
 router.get("/", home);
-router.get("/login", login)
+router.post("/login", login)
 router.post("/add-usr", adduser);
 
 export default router;
