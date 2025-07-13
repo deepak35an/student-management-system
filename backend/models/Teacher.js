@@ -3,6 +3,7 @@ import mongoose from "mongoose";
 const teacherSchema = new mongoose.Schema({
   user: { type: mongoose.Schema.Types.ObjectId, ref: "User", required: true },
   subjects: [{ type: String }],
+  teacherId: { type: String, required: true },
   classes: [{ type: String }]
 }, { timestamps: true });
 

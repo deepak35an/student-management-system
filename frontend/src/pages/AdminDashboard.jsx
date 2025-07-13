@@ -4,38 +4,7 @@ import axios from 'axios';
 
 
 const AdminDashboard = () => {
-  // const [users, setUsers] = useState([
-  //   {
-  //     id: 1,
-  //     name: 'John Doe',
-  //     email: 'john@example.com',
-  //     role: 'Student',
-  //     studentId: 'ST001',
-  //     department: 'Computer Science',
-  //     year: '2nd Year',
-  //     status: 'Active'
-  //   },
-  //   {
-  //     id: 2,
-  //     name: 'Jane Smith',
-  //     email: 'jane@example.com',
-  //     role: 'Student',
-  //     studentId: 'ST002',
-  //     department: 'Mathematics',
-  //     year: '1st Year',
-  //     status: 'Active'
-  //   },
-  //   {
-  //     id: 3,
-  //     name: 'Dr. Wilson',
-  //     email: 'wilson@example.com',
-  //     role: 'Teacher',
-  //     teacherId: 'TC001',
-  //     department: 'Physics',
-  //     subject: 'Quantum Physics',
-  //     status: 'Active'
-  //   }
-  // ]);
+
   const [users, setUsers] = useState([]);
 
   useEffect(() => {
@@ -47,9 +16,25 @@ const AdminDashboard = () => {
             Authorization: `Bearer ${token}`,
           },
         });
-        setUsers(response.data);
-        setLoading(false);
 
+        // Transform data: flatten `user` into top-level for easier rendering
+        const formatted = response.data.map((studentDoc) => ({
+          id: studentDoc._id,
+          name: studentDoc.user.name,
+          email: studentDoc.user.email,
+          role: studentDoc.user.role,
+          rollNo: studentDoc.rollNumber,
+          className: studentDoc.className,
+          classes: studentDoc.classes || [],
+          status: 'Active', // or you can derive this from studentDoc if available
+          userId: studentDoc.user._id,
+          teacherId: studentDoc.teacherId,
+          feesPaid: studentDoc.feesPaid,
+          createdAt: studentDoc.createdAt,
+        }));
+
+        setUsers(formatted);
+        setLoading(false);
       } catch (err) {
         console.error('Failed to fetch users:', err);
         setError('Error fetching users');
@@ -61,6 +46,7 @@ const AdminDashboard = () => {
   }, []);
 
 
+
   const [currentView, setCurrentView] = useState('view');
   const [searchTerm, setSearchTerm] = useState('');
   const [filterRole, setFilterRole] = useState('All');
@@ -68,7 +54,7 @@ const AdminDashboard = () => {
     name: '',
     email: '',
     role: 'Student',
-    studentId: '',
+    rollNo: '',
     teacherId: '',
     department: '',
     year: '',
@@ -83,7 +69,7 @@ const AdminDashboard = () => {
     });
   };
 
-  const handleSubmit = (e) => {
+  const handleSubmit = async (e) => {
     e.preventDefault();
     const newUser = {
       id: Date.now(),
@@ -94,14 +80,32 @@ const AdminDashboard = () => {
       name: '',
       email: '',
       role: 'Student',
-      studentId: '',
+      rollNo: '',
       teacherId: '',
-      department: '',
+      className: '',
       year: '',
       subject: '',
       status: 'Active'
     });
     setCurrentView('view');
+
+    const token = localStorage.getItem('token');
+    const response = await axios.post('http://localhost:5005/api/auth/add-student',
+      {
+        name: formData.name,
+        email: formData.email,
+        password: "password",
+        rollNumber: formData.rollNo,
+        // role : "student",
+        className: formData.className
+      },
+      {
+        headers: {
+          Authorization: `Bearer ${token}`,
+        }
+      },
+    );
+
   };
 
   const deleteUser = (id) => {
@@ -117,15 +121,17 @@ const AdminDashboard = () => {
   };
 
   const filteredUsers = users.filter(user => {
-    const matchesSearch = user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+    const matchesSearch =
+      user.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
       user.email.toLowerCase().includes(searchTerm.toLowerCase()) ||
-      (user.studentId && user.studentId.toLowerCase().includes(searchTerm.toLowerCase())) ||
-      (user.teacherId && user.teacherId.toLowerCase().includes(searchTerm.toLowerCase()));
+      (user.rollNo && user.rollNo.toLowerCase().includes(searchTerm.toLowerCase())) ||
+      (user.className && user.className.toLowerCase().includes(searchTerm.toLowerCase()));
 
-    const matchesRole = filterRole === 'All' || user.role === filterRole;
+    const matchesRole = filterRole === 'All' || user.role.toLowerCase() === filterRole.toLowerCase();
 
     return matchesSearch && matchesRole;
   });
+
 
   return (
     <div className="min-h-screen bg-gray-50 p-6">
@@ -144,8 +150,8 @@ const AdminDashboard = () => {
               <button
                 onClick={() => setCurrentView('view')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors ${currentView === 'view'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 View Users
@@ -153,8 +159,8 @@ const AdminDashboard = () => {
               <button
                 onClick={() => setCurrentView('add')}
                 className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${currentView === 'add'
-                    ? 'bg-blue-600 text-white'
-                    : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
                   }`}
               >
                 <Plus className="h-4 w-4" />
@@ -200,8 +206,8 @@ const AdminDashboard = () => {
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">User</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Role</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">ID</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th>
-                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Details</th>
+                    {/* <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Department</th> */}
+                    <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Class</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Status</th>
                     <th className="px-6 py-3 text-left text-xs font-medium text-gray-500 uppercase tracking-wider">Actions</th>
                   </tr>
@@ -217,25 +223,29 @@ const AdminDashboard = () => {
                       </td>
                       <td className="px-6 py-4">
                         <span className={`inline-flex px-2 py-1 text-xs font-semibold rounded-full ${user.role === 'Student'
-                            ? 'bg-green-100 text-green-800'
-                            : 'bg-purple-100 text-purple-800'
+                          ? 'bg-green-100 text-green-800'
+                          : 'bg-purple-100 text-purple-800'
                           }`}>
                           {user.role}
                         </span>
                       </td>
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {user.studentId || user.teacherId || '-'}
+                        {user.rollNo || user.teacherId || '-'}
                       </td>
-                      <td className="px-6 py-4 text-sm text-gray-900">{user.department}</td>
+                      {/* <td className="px-6 py-4 text-sm text-gray-900">{user.department}</td> */}
                       <td className="px-6 py-4 text-sm text-gray-900">
-                        {user.year || user.subject || '-'}
+                        {user.className
+                          || (Array.isArray(user.classes) ? user.classes.join(', ') : '')
+                          || user.year
+                          || user.subject
+                          || '-'}
                       </td>
                       <td className="px-6 py-4">
                         <button
                           onClick={() => toggleStatus(user.id)}
                           className={`inline-flex items-center gap-1 px-2 py-1 text-xs font-semibold rounded-full ${user.status === 'Active'
-                              ? 'bg-green-100 text-green-800 hover:bg-green-200'
-                              : 'bg-red-100 text-red-800 hover:bg-red-200'
+                            ? 'bg-green-100 text-green-800 hover:bg-green-200'
+                            : 'bg-red-100 text-red-800 hover:bg-red-200'
                             }`}
                         >
                           {user.status === 'Active' ? <Eye className="h-3 w-3" /> : <EyeOff className="h-3 w-3" />}
@@ -310,11 +320,11 @@ const AdminDashboard = () => {
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                   >
                     <option value="Student">Student</option>
-                    <option value="Teacher">Teacher</option>
+                    {/* <option value="Teacher">Teacher</option> */}
                   </select>
                 </div>
 
-                <div>
+                {/* <div>
                   <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
                   <select
                     name="department"
@@ -332,16 +342,28 @@ const AdminDashboard = () => {
                     <option value="English">English</option>
                     <option value="History">History</option>
                   </select>
+                </div> */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+                  <input
+                    type="text"
+                    name="className"
+                    value={formData.className}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="cse2026"
+                    required
+                  />
                 </div>
 
                 {formData.role === 'Student' && (
                   <>
                     <div>
-                      <label className="block text-sm font-medium text-gray-700 mb-2">Student ID</label>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Roll no</label>
                       <input
                         type="text"
-                        name="studentId"
-                        value={formData.studentId}
+                        name="rollNo"
+                        value={formData.rollNo}
                         onChange={handleInputChange}
                         className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
                         placeholder="ST001"
