@@ -1,6 +1,6 @@
 import express from "express";
 import { Router } from "express";
-import {home, login, adduser} from "../controllers/auth-controller.js"
+import { home, login, adduser } from "../controllers/auth-controller.js"
 import auth from "../middleware/authMiddleware.js";
 import User from "../models/User.js";
 import Attendance from "../models/Attendance.js";
@@ -63,7 +63,7 @@ router.get("/users", auth(["admin"]), async (req, res) => {
 // add teachers
 router.post('/add-teacher', async (req, res) => {
   try {
-    const { name, email, password, subjects,teacherId, classes } = req.body;
+    const { name, email, password, subjects, teacherId, classes } = req.body;
     console.log('Incoming teacher data:', req.body);
 
     // Check if user already exists
@@ -90,7 +90,7 @@ router.post('/add-teacher', async (req, res) => {
     const teacher = await Teacher.create({
       user: user._id,
       subjects,// array of strings
-      teacherId, 
+      teacherId,
       classes   // array of strings
     });
     console.log('Teacher created:', teacher._id);
@@ -142,7 +142,16 @@ router.post('/add-student', async (req, res) => {
   }
 });
 
+// teacher : get student data
+router.get("/get-student", async (req,res) => {
+  try {
+    const users = await Student.find({}, "-password").populate("user", "-password");
+    res.json(users);
 
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: err.message });
+  }
+})
 
 
 // Teacher: Mark attendance
@@ -164,17 +173,28 @@ router.post("/attendance", auth(["teacher"]), async (req, res) => {
   }
 });
 
+// Teacher: get teacher data
+router.get("/get-teacher", async (req, res) => {
+  try {
+    const teachers = await Teacher.find().populate("user", "-password");
+    res.json(teachers);
+
+  } catch (error) {
+    res.status(500).json({ message: "Server error", error: error.message });
+  }
+})
+
 // Teacher: Post assignment/result/notice
 router.post("/post", auth(["teacher"]), async (req, res) => {
   try {
-    const { title, content, className, type } = req.body;
+    const { title, content, className, type, postedBy } = req.body;
 
     const post = new Post({
       title,
       content,
       className,
       type,
-      postedBy: req.user.id
+      postedBy
     });
 
     await post.save();

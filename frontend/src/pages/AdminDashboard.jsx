@@ -57,6 +57,7 @@ const AdminDashboard = () => {
     rollNo: '',
     teacherId: '',
     department: '',
+    classes: '',
     year: '',
     subject: '',
     status: 'Active'
@@ -68,6 +69,32 @@ const AdminDashboard = () => {
       [e.target.name]: e.target.value
     });
   };
+  const handleSubmitteacher = (async (e) => {
+    e.preventDefault();
+    try {
+      const token = localStorage.getItem('token');
+      console.log(token);
+      const response = await axios.post('http://localhost:5005/api/auth/add-teacher',
+        {
+          name: formData.name,
+          email: formData.email,
+          password: "password",
+          teacherId: formData.teacherId,
+          // role: formData.role,
+          classes: formData.classes,
+          subjects: formData.subject
+        },
+        {
+          headers: {
+            Authorization: `Bearer ${token}`,
+          }
+        },
+      );
+      console.log(response);
+    } catch (error) {
+      console.error('Submission error:', error);
+    }
+  });
 
   const handleSubmit = async (e) => {
     e.preventDefault();
@@ -165,6 +192,27 @@ const AdminDashboard = () => {
               >
                 <Plus className="h-4 w-4" />
                 Add User
+              </button>
+              <button
+                onClick={() => setCurrentView('add-teacher')}
+                className={`px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 ${currentView === 'add-teacher'
+                  ? 'bg-blue-600 text-white'
+                  : 'bg-gray-100 text-gray-700 hover:bg-gray-200'
+                  }`}
+              >
+                <Plus className="h-4 w-4" />
+                Add Teacher
+              </button>
+              <button
+                onClick={() => {
+                  localStorage.removeItem('token');
+                  localStorage.removeItem('user');
+                  setCurrentView('logout');
+                  window.location.reload();
+                }}
+                className={"px-4 py-2 rounded-lg font-medium transition-colors flex items-center gap-2 hover:bg-blue-500"}
+              >
+                Logout
               </button>
             </div>
           </div>
@@ -450,6 +498,192 @@ const AdminDashboard = () => {
                   className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
                 >
                   Add User
+                </button>
+              </div>
+            </div>
+          </div>
+        )}
+        {currentView === 'add-teacher' && (
+          <div className="bg-white rounded-lg shadow-sm p-6">
+            <h2 className="text-xl font-semibold text-gray-900 mb-6">Add New User</h2>
+
+            <div className="space-y-6">
+              <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Full Name</label>
+                  <input
+                    type="text"
+                    name="name"
+                    value={formData.name}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Email Address</label>
+                  <input
+                    type="email"
+                    name="email"
+                    value={formData.email}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  />
+                </div>
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Role</label>
+                  <select
+                    name="role"
+                    value={formData.role}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    {/* <option value="Student">Student</option> */}
+                    <option value="Teacher">Teacher</option>
+                  </select>
+                </div>
+
+                {/* <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Department</label>
+                  <select
+                    name="department"
+                    value={formData.department}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    required
+                  >
+                    <option value="">Select Department</option>
+                    <option value="Computer Science">Computer Science</option>
+                    <option value="Mathematics">Mathematics</option>
+                    <option value="Physics">Physics</option>
+                    <option value="Chemistry">Chemistry</option>
+                    <option value="Biology">Biology</option>
+                    <option value="English">English</option>
+                    <option value="History">History</option>
+                  </select>
+                </div> */}
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Class</label>
+                  <input
+                    type="text"
+                    name="classes"
+                    value={formData.classes ? formData.classes.join(', ') : ''}
+                    onChange={(e) => {
+                      const value = e.target.value;
+                      setFormData((prev) => ({
+                        ...prev,
+                        classes: value.split(',').map((c) => c.trim()),
+                      }));
+                    }}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                    placeholder="e.g., cse2026, cse2027"
+                    required
+                  />
+
+                </div>
+
+                {/* {formData.role === 'teacher' && (
+                  <>
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Teacher Id</label>
+                      <input
+                        type="text"
+                        name="teacherId"
+                        value={formData.teacherId}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        placeholder="teach01"
+                        required
+                      />
+                    </div>
+
+                    <div>
+                      <label className="block text-sm font-medium text-gray-700 mb-2">Academic Year</label>
+                      <select
+                        name="year"
+                        value={formData.year}
+                        onChange={handleInputChange}
+                        className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                        required
+                      >
+                        <option value="">Select Year</option>
+                        <option value="1st Year">1st Year</option>
+                        <option value="2nd Year">2nd Year</option>
+                        <option value="3rd Year">3rd Year</option>
+                        <option value="4th Year">4th Year</option>
+                      </select>
+                    </div>
+                  </>
+                )} */}
+
+                {/* {formData.role === 'Teacher' && ( */}
+                <>
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Teacher ID</label>
+                    <input
+                      type="text"
+                      name="teacherId"
+                      value={formData.teacherId}
+                      onChange={handleInputChange}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="TC001"
+                      required
+                    />
+                  </div>
+
+                  <div>
+                    <label className="block text-sm font-medium text-gray-700 mb-2">Subject</label>
+                    <input
+                      type="text"
+                      name="subject"
+                      value={formData.subject ? formData.subject.join(', ') : ''}
+                      onChange={(e) => {
+                        const value = e.target.value;
+                        setFormData((prev) => ({
+                          ...prev,
+                          subject: value.split(',').map((s) => s.trim()),
+                        }));
+                      }}
+                      className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                      placeholder="e.g., Operating system, Oops"
+                      required
+                    />
+
+                  </div>
+                </>
+                {/* )} */}
+
+                <div>
+                  <label className="block text-sm font-medium text-gray-700 mb-2">Status</label>
+                  <select
+                    name="status"
+                    value={formData.status}
+                    onChange={handleInputChange}
+                    className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:ring-2 focus:ring-blue-500 focus:border-transparent"
+                  >
+                    <option value="Active">Active</option>
+                    <option value="Inactive">Inactive</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="flex justify-end gap-4">
+                <button
+                  type="button"
+                  onClick={() => setCurrentView('view')}
+                  className="px-6 py-2 text-gray-700 bg-gray-100 rounded-lg hover:bg-gray-200 transition-colors"
+                >
+                  Cancel
+                </button>
+                <button
+                  type="button"
+                  onClick={handleSubmitteacher}
+                  className="px-6 py-2 bg-blue-600 text-white rounded-lg hover:bg-blue-700 transition-colors"
+                >
+                  Add teacher
                 </button>
               </div>
             </div>
