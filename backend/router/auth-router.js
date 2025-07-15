@@ -162,8 +162,8 @@ router.post("/attendance", auth(["teacher"]), async (req, res) => {
     const attendance = new Attendance({
       className,
       date,
-      records,
-      markedBy: req.user.id
+      records
+      // markedBy: req.user.id
     });
 
     await attendance.save();
