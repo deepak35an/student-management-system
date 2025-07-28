@@ -14,7 +14,7 @@ import {
 } from 'lucide-react';
 
 const StudentDashboard = ({ userEmail, userData, posts, attendanceData, onViewAssignments, onCheckResults, onViewAttendance }) => {
-  console.log("✅ StudentDashboard component mounted with email:", userEmail);
+
 
   // Default props in case they're not provided
   const defaultUserData = {
@@ -45,21 +45,47 @@ const StudentDashboard = ({ userEmail, userData, posts, attendanceData, onViewAs
   ];
 
   // Use provided props or fallback to defaults
-  const [studentData, setStudentData] = useState(userData || defaultUserData);
+  const [studentData, setStudentData] = useState({
+    user: {
+      name: '',
+      email: '',
+      role: "student"
+    },
+    rollNumber: "Loading...",
+    className: "Loading...",
+    feesPaid: false
+  });
   const [postsData, setPostsData] = useState(posts || defaultPosts);
   const [attendanceRecords, setAttendanceRecords] = useState(attendanceData || defaultAttendance);
 
+  useEffect(()=>{
+    const response = localStorage.getItem('user');
+    const logedUser = JSON.parse(response);
+    console.log(logedUser.name);
+    setStudentData(
+      {
+        user: {
+          name: logedUser.name,
+          email: logedUser.email,
+          role: "student"
+        },
+        rollNumber: "Loading...",
+        className: "Loading...",
+        feesPaid: false
+      }
+    )
+  },[])
   // Update state when props change
   useEffect(() => {
-    if (userData) {
-      setStudentData({
-        ...userData,
-        user: {
-          ...userData.user,
-          email: userEmail || userData.user.email
-        }
-      });
-    }
+    // if (userData) {
+    //   setStudentData({
+    //     ...userData,
+    //     user: {
+    //       ...userData.user,
+    //       email: userEmail || userData.user.email
+    //     }
+    //   });
+    // }
   }, [userData, userEmail]);
 
   useEffect(() => {

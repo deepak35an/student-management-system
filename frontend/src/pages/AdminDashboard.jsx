@@ -91,6 +91,20 @@ const AdminDashboard = () => {
         },
       );
       console.log(response);
+      // window.location.reload();
+      // need to set state variable;;
+      setFormData({
+    name: '',
+    email: '',
+    role: '',
+    rollNo: '',
+    teacherId: '',
+    department: '',
+    classes: '',
+    year: '',
+    subject: '',
+    status: 'Active'
+  });
     } catch (error) {
       console.error('Submission error:', error);
     }
@@ -114,7 +128,7 @@ const AdminDashboard = () => {
       subject: '',
       status: 'Active'
     });
-    setCurrentView('view');
+    // setCurrentView('view');
 
     const token = localStorage.getItem('token');
     const response = await axios.post('http://localhost:5005/api/auth/add-student',
